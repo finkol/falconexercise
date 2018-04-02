@@ -1,6 +1,29 @@
-web:
-  build: ./app
-  ports:
-   - "3579:5000"
-  volumes:
-   - .:/code
+version: '3'
+services:
+  app:
+    build: ./app
+    ports:
+     - "3579:5000"
+    environment:
+     - REDIS_HOST=redis
+    volumes:
+     - .:/code
+    networks:
+      - redis-net
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:4.0.5-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    hostname: redis
+    networks:
+      - redis-net
+    volumes:
+      - redis-data:/data
+
+networks:
+  redis-net:
+
+volumes:
+  redis-data:
