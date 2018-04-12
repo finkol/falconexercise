@@ -9,9 +9,12 @@ import uuid
 
 app = Flask(__name__)
 
-#r = redis.StrictRedis(host=os.environ['REDIS_HOST'], port=6379, db=0)
+r = redis.StrictRedis(host=os.environ['REDIS_HOST'], port=6379, db=0)
 db_conn = sqlite3.connect('falcon.db', check_same_thread=False)
 db_cursor = db_conn.cursor()
+
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
 
 
 @app.before_first_request
@@ -28,7 +31,7 @@ def initialize_db():
     print(db_cursor.fetchone())
 
 
-async def consumer(uuid, json_payload, timestap_received):
+async def insert_to_db(uuid, json_payload, timestap_received):
     print("blabla")
     print(uuid, json_payload, timestap_received)
 
@@ -40,13 +43,15 @@ def put_json():
     uuid_str = str(uuid.uuid4())
     #r.set(uuid_str, content)
     #bla = r.get(uuid_str)
-    asyncio.ensure_future(consumer(uuid_str, content, timestamp_received))
+    consumer = asyncio.ensure_future(insert_to_db(uuid_str, content, timestamp_received))
+    loop.run_until_complete(consumer)
     return "Received"
 
 
 @app.route('/')
 def hello_world():
     print("yolo")
+    asyncio.ensure_future(insert_to_db("vjj", "hgjghd", "jeahjahr"))
     return 'Hello World!!!'
 
 
