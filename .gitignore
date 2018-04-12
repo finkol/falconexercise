@@ -190,3 +190,4 @@ venv.bak/
 
 
 # End of https://www.gitignore.io/api/macos,python,pycharm+all
+app/falcon\.db
