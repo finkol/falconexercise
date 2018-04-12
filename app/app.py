@@ -17,7 +17,6 @@ import json as json_module
 
 app = Sanic(__name__)
 
-# r = redis.StrictRedis(host=os.environ['REDIS_HOST'], port=6379)
 db_conn = sqlite3.connect('falcon.db', check_same_thread=False)
 db_cursor = db_conn.cursor()
 
@@ -37,9 +36,12 @@ async def scan_redis_database(request):
 @app.listener('after_server_start')
 async def initialize_db(app, loop):
     # Start with an empty sheet
-    app.r = await aioredis.create_redis_pool((os.environ['REDIS_HOST'], 6379))
-    app.r.iscan()
+    try:
+        app.r = await aioredis.create_redis_pool((os.environ['REDIS_HOST'], 6379))
+    except:
+        app.r = await aioredis.create_redis_pool(("127.0.0.1", 6379))
     await app.r.flushall()
+
     db_cursor.execute("DROP TABLE IF EXISTS dummy_json")
     db_cursor.execute("""CREATE TABLE dummy_json
                     (uuid TEXT, 
@@ -61,8 +63,6 @@ async def insert_to_db(uuid, json_payload, timestap_received):
     params = (uuid, json_payload, timestap_received.to_datetime_string())
     query = 'INSERT INTO dummy_json (uuid, json_payload, timestamp_received) VALUES (?, ?, ?);'
     db_cursor.execute(query, params)
-    db_cursor.execute("SELECT * FROM dummy_json")
-    print(db_cursor.fetchall())
 
 
 async def select_all_from_db():
