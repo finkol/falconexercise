@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Falcon demo</title>
+    </head>
+    <body>
+        <script>
+            var ws = new WebSocket('ws://' + document.domain + ':' + location.port + '/json_dummy_ws'),
+                messages = document.createElement('ul');
+            ws.onmessage = function (event) {
+                console.log(event.data);
+                console.log(JSON.parse(event.data));
+                var parsed_json = JSON.parse(event.data);
+                var messages = document.getElementsByTagName('ul')[0],
+                    message = document.createElement('li'),
+                    message_pre = document.createElement('pre'),
+                    uuid = document.createTextNode('UUID: ' + parsed_json['uuid']),
+                    dummy_json = document.createTextNode('JSON: ' + JSON.stringify(JSON.parse(parsed_json['data']),null,2)),
+                    timestamp = document.createTextNode('Timestamp_received: ' + parsed_json['timestamp_received']);
+                message.appendChild(uuid);
+                message.appendChild(message_pre);
+                message_pre.appendChild(dummy_json);
+                message.appendChild(timestamp);
+                messages.appendChild(message);
+            };
+            document.body.appendChild(messages);
+        </script>
+    </body>
+</html>
