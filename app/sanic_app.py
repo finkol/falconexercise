@@ -10,9 +10,9 @@ import pendulum
 import redis
 import uuid
 
-from sanic.response import text
+from sanic.response import text, json
 
-import json
+import json as json_module
 
 app = Sanic(__name__)
 
@@ -30,35 +30,49 @@ async def scan_redis_database():
     for key in r.scan_iter():
         redis_item = r.get(key)
         python_item = pickle.loads(redis_item)
-        asyncio.ensure_future(insert_to_db(key.decode("utf-8"), str(json.dumps(python_item[0])), python_item[1]))
+        asyncio.ensure_future(insert_to_db(key.decode("utf-8"), str(json_module.dumps(python_item[0])), python_item[1]))
         r.delete(key)
 
 
 @app.listener('after_server_start')
 async def initialize_db(app, loop):
     r.flushdb()
-    db_cursor.execute("DROP TABLE IF EXISTS DUMMY_JSON")
-    db_cursor.execute("""CREATE TABLE DUMMY_JSON
+    db_cursor.execute("DROP TABLE IF EXISTS dummy_json")
+    db_cursor.execute("""CREATE TABLE dummy_json
                     (uuid TEXT, 
                     json_payload TEXT, 
                     timestamp_inserted_to_db TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
                     timestamp_received TIMESTAMP)""")
     db_conn.commit()
-    db_cursor.execute("INSERT INTO DUMMY_JSON VALUES ('1', 'Bla', '1', '2')")
-    db_cursor.execute("SELECT * FROM DUMMY_JSON")
-    print(db_cursor.fetchone())
 
 
 async def insert_to_db(uuid, json_payload, timestap_received):
     params = (uuid, json_payload, timestap_received.to_datetime_string())
-    query = 'INSERT INTO DUMMY_JSON (uuid, json_payload, timestamp_received) VALUES (?, ?, ?);'
+    query = 'INSERT INTO dummy_json (uuid, json_payload, timestamp_received) VALUES (?, ?, ?);'
     db_cursor.execute(query, params)
-    db_cursor.execute("SELECT * FROM DUMMY_JSON")
+    db_cursor.execute("SELECT * FROM dummy_json")
     print(db_cursor.fetchall())
 
 
 async def select_all_from_db():
-    print("TODO")
+    db_cursor.execute("SELECT * FROM dummy_json")
+    results = db_cursor.fetchall()
+    dict_results = []
+    for result in results:
+        dict_result = dict(uuid=result[0], data=json_module.loads(result[1]), timestamp_inserted_to_db=result[2],
+                           timestamp_received=result[3])
+        dict_results.append(dict_result)
+
+    return dict_results
+
+
+async def select_one_from_db(uuid):
+    query = "SELECT * FROM dummy_json WHERE uuid = ?"
+    db_cursor.execute(query, (uuid,))
+    result = db_cursor.fetchone()
+
+    return dict(uuid=result[0], data=json_module.loads(result[1]), timestamp_inserted_to_db=result[2],
+                timestamp_received=result[3])
 
 
 @app.put("/json_dummy")
@@ -72,12 +86,12 @@ async def put_json(request):
 
 @app.get("/json_dummy")
 async def get_json(request):
-    print("TODO")
+    return json(await select_all_from_db())
 
 
 @app.get("/json_dummy/<uuid>")
-async def get_one_json(request):
-    print("TODO")
+async def get_one_json(request, uuid):
+    return json(await select_one_from_db(uuid))
 
 
 @app.route('/')
