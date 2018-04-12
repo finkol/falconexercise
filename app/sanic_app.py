@@ -1,3 +1,6 @@
+import ast
+import pickle
+
 from sanic import Sanic
 import asyncio
 import os
@@ -19,19 +22,15 @@ db_cursor = db_conn.cursor()
 
 
 @app.middleware('response')
-async def print_on_response(request, response):
-    print("I print when a response is returned by the server")
+async def consumer(request, response):
     asyncio.ensure_future(scan_redis_database())
 
 
 async def scan_redis_database():
     for key in r.scan_iter():
         redis_item = r.get(key)
-        python_item = eval(redis_item)
-        print("------")
-        print(python_item)
-        print("--------")
-        asyncio.ensure_future(insert_to_db(eval(key), json.dumps(python_item[0]), python_item[1]))
+        python_item = pickle.loads(redis_item)
+        asyncio.ensure_future(insert_to_db(key.decode("utf-8"), str(json.dumps(python_item[0])), python_item[1]))
         r.delete(key)
 
 
@@ -52,23 +51,33 @@ async def initialize_db(app, loop):
 
 async def insert_to_db(uuid, json_payload, timestap_received):
     params = (uuid, json_payload, timestap_received.to_datetime_string())
-    print(params)
-    print(type(json_payload))
     query = 'INSERT INTO DUMMY_JSON (uuid, json_payload, timestamp_received) VALUES (?, ?, ?);'
     db_cursor.execute(query, params)
     db_cursor.execute("SELECT * FROM DUMMY_JSON")
     print(db_cursor.fetchall())
 
 
-@app.route("/json_dummy", methods=['PUT'])
+async def select_all_from_db():
+    print("TODO")
+
+
+@app.put("/json_dummy")
 async def put_json(request):
     timestamp_received = pendulum.now()
     json_content = request.json
-    uuid_str = str(uuid.uuid4())
-    r.set(uuid_str, (json_content, timestamp_received))
-    bla = r.get(uuid_str)
-    consumer = asyncio.ensure_future(insert_to_db(uuid_str, json_content, timestamp_received))
+    uuid_str = str(uuid.uuid4().hex)
+    r.set(uuid_str, pickle.dumps((json_content, timestamp_received)))
     return text("Received")
+
+
+@app.get("/json_dummy")
+async def get_json(request):
+    print("TODO")
+
+
+@app.get("/json_dummy/<uuid>")
+async def get_one_json(request):
+    print("TODO")
 
 
 @app.route('/')
