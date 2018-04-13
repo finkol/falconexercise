@@ -21,6 +21,9 @@
 
         </div>
     </div>
+    <div class="row">
+        <div class="col-12 empty-message">Nothing here yet. Try to PUT http://0.0.0.0:3579/json_dummy/ with the json in the body</div>
+    </div>
 </div>
 
 
@@ -41,6 +44,7 @@
         var new_message_template = $("#new_message").html();
         var new_message = $(new_message_template).clone();
         ws.onmessage = function (event) {
+            $(".empty-message").hide();
             var parsed_json = JSON.parse(event.data);
             $(new_message).find(".uuid_content").html(parsed_json['uuid']);
             $(new_message).find(".json_content").html(JSON.stringify(JSON.parse(parsed_json['data']), null, 2));
