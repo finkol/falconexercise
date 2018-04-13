@@ -5,6 +5,9 @@ import sqlite3
 import aioredis
 
 
+# Note: SQLite is obviously not something I would suggest using in real application but it's easy to setup for
+# this kind of exercise, while showing skills needed to communicate with more production ready database.
+
 async def insert_to_db(app, uuid, json_payload, timestap_received):
     params = (uuid, json_payload, timestap_received.to_datetime_string())
     query = 'INSERT INTO dummy_json (uuid, json_payload, timestamp_received) VALUES (?, ?, ?);'
@@ -33,7 +36,7 @@ async def select_one_from_db(app, uuid):
 
 
 async def initialize_db_and_redis(app, loop):
-    # Start with an empty sheet
+    # Start with clean sheet
     try:
         app.r = await aioredis.create_redis_pool((os.environ['REDIS_HOST'], 6379))
     except:

@@ -10,8 +10,6 @@ from sanic.response import text, json, file
 
 import json as json_module
 
-from sanic.websocket import WebSocketProtocol
-
 from data_access_layer.dummy_json_dal import initialize_db_and_redis, select_all_from_db, select_one_from_db
 from service_layer.dummy_json_service import proccess_json_in_redis
 
@@ -69,10 +67,8 @@ async def socket_json(request, ws):
 
 @app.route('/')
 async def render_index(request):
-    return await file('templates/index.html')
-
+    return await file('application/templates/index.html')
 
 
 if __name__ == "__main__":
-    # Only for debugging while developing
     app.run(host='0.0.0.0', port=3579)
