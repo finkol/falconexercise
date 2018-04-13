@@ -6,5 +6,5 @@ RUN pip install -r /tmp/requirements.txt
 ADD . /application
 
 # Run!
-WORKDIR /application
-CMD ["python", "main.py"]
+WORKDIR /
+CMD ["python", "application/main.py"]

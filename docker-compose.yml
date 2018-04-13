@@ -3,7 +3,8 @@ services:
   app:
     build: application
     ports:
-     - "3579:5000"
+     - "3579:3579"
+     - "42101:42101"
     environment:
      - REDIS_HOST=redis
     volumes:
