@@ -3,8 +3,8 @@ FROM python:3.6
 ADD ./requirements.txt /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt
 
-ADD . /app
+ADD . /application
 
 # Run!
-WORKDIR /app
-CMD ["python", "sanic_app.py"]
+WORKDIR /application
+CMD ["python", "main.py"]

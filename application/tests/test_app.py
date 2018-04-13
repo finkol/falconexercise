@@ -1,10 +1,9 @@
 import asynctest
-import datetime
 
 import pendulum
 
-from app import app
-from app.app import insert_to_db, select_all_from_db, initialize_db
+from application import main
+from application.data_access_layer.dummy_json_dal import insert_to_db, select_all_from_db, initialize_db_and_redis
 
 import json as json_module
 
@@ -13,7 +12,7 @@ class TestDatabaseLayer(asynctest.TestCase):
     async def test_select_and_insert(self):
         # Begin with clean sheet
         loop = asynctest.asyncio.get_event_loop()
-        await initialize_db(app, loop)
+        await initialize_db_and_redis(main, loop)
 
         # Select all rows from DB, should be empty
         results1 = await select_all_from_db()
