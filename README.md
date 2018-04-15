@@ -23,7 +23,7 @@ put this in the terminal
 docker-compose up --build
 ```
 
-given you're in the root of the solution. This should install and run the server. 
+given you're in the root of the solution. This should install and run the server.
 
 ## Using the solution
 
@@ -32,7 +32,15 @@ The server runs on port 3579 so the page to view the real time message delivery 
 These endpoints are available:
 * To send JSON: PUT http://0.0.0.0:3579/json_dummy/ (JSON in the body)
 * To get all JSON in the database: GET http://0.0.0.0:3579/json_dummy/
-* To get one specific JSON: GET http://0.0.0.0:3579/json_dummy/[uuid] (without the brackets)  
+* To get one specific JSON: GET http://0.0.0.0:3579/json_dummy/[uuid] (without the brackets) 
+
+Note that when the server is started Redis is flushed and the SQLite table is dropped and recreated, for quicker 
+debugging and testing.
+
+## Tests
+
+Most aspects of the app are tested with several unit tests in tests/test_app.py.
+
 
 ## Built With
 

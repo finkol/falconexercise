@@ -162,6 +162,8 @@ class TestDatabaseLayer(asynctest.TestCase):
         self.assertEqual(json_module.dumps(results4[1]['data']), json_string)
         self.assertEqual(results4[1]['timestamp_received'], now2.to_datetime_string())
 
+        app.db_conn.close()
+
 
 class TestRedis(asynctest.TestCase):
     async def test_redis_connection(self):
